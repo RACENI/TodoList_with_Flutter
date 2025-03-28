@@ -9,17 +9,27 @@ import 'main.dart';
 class TodoProvider extends ChangeNotifier {
   final List<Todo> _todos = [];
   TodoFilter _filter = TodoFilter.all;
+  String _searchKeyword = '';
+
+  void setSearchKeyword(String keyword) {
+    _searchKeyword = keyword.toLowerCase();
+    notifyListeners();
+  }
 
   List<Todo> get todos {
-    switch(_filter) {
-      case TodoFilter.done:
-        return _todos.where((t) => t.isDone).toList();
-      case TodoFilter.undone:
-        return _todos.where((t) => !t.isDone).toList();
-      case TodoFilter all:
-      default:
-        return List.unmodifiable(_todos);
+    List<Todo> filtered = switch (_filter) {
+      TodoFilter.done => _todos.where((t) => t.isDone).toList(),
+      TodoFilter.undone => _todos.where((t) => !t.isDone).toList(),
+      _ => List.from(_todos),
+    };
+
+    if(_searchKeyword.isNotEmpty) {
+      filtered = filtered.where((t) =>
+        t.title.toLowerCase().contains(_searchKeyword)
+      ).toList();
     }
+
+    return List.unmodifiable(filtered);
   }
 
   void setFilter(TodoFilter filter) {

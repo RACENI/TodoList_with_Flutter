@@ -24,19 +24,41 @@ class TodoHome extends StatelessWidget {
           key: _formKey,
           child: Column(
             children: [
-              DropdownButton(
-                value: provider.filter,
-                onChanged: (value) {
-                  if(value != null) {
-                    provider.setFilter(value);
-                  }
-                },
-                items: [
-                  DropdownMenuItem(value: TodoFilter.all, child: Text('전체')),
-                  DropdownMenuItem(value: TodoFilter.undone, child: Text('미완료')),
-                  DropdownMenuItem(value: TodoFilter.done, child: Text('완료')),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: DropdownButton(
+                      value: provider.filter,
+                      onChanged: (value) {
+                        if(value != null) {
+                          provider.setFilter(value);
+                        }
+                      },
+                      items: [
+                        DropdownMenuItem(value: TodoFilter.all, child: Text('전체')),
+                        DropdownMenuItem(value: TodoFilter.undone, child: Text('미완료')),
+                        DropdownMenuItem(value: TodoFilter.done, child: Text('완료')),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 30),
+                  Expanded(
+                    flex: 7,
+                    child: TextField(
+                        decoration: InputDecoration(
+                          labelText: '검색',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.search),
+                        ),
+                        onChanged: (value) {
+                          provider.setSearchKeyword(value);
+                        },
+                    ),
+                  ),
                 ],
               ),
+              SizedBox(height: 10),
               TextFormField(
                 controller: _controller,
                 decoration: InputDecoration(
