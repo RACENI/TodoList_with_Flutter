@@ -1,18 +1,14 @@
 # TodoList_with_Flutter
-Flutter 공부용 TodoList
-# todolist
+Flutter 공부용 TodoList(ChatGPT)
 
-A new Flutter project.
+------------------------------
 
-## Getting Started
+# 구현된 기능
 
-This project is a starting point for a Flutter application.
+1. 할 일 추가 / 삭제 / 체크
 
-A few resources to get you started if this is your first Flutter project:
+2. 상세 페이지로 이동해서 할 일 수정
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+3. 상태 관리는 Provider로 전환
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+4. SharedPreferences 연동으로 로컬 저장까지 완료
