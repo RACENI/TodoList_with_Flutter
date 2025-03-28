@@ -8,8 +8,26 @@ import 'main.dart';
 
 class TodoProvider extends ChangeNotifier {
   final List<Todo> _todos = [];
+  TodoFilter _filter = TodoFilter.all;
 
-  List<Todo> get todos => List.unmodifiable(_todos);
+  List<Todo> get todos {
+    switch(_filter) {
+      case TodoFilter.done:
+        return _todos.where((t) => t.isDone).toList();
+      case TodoFilter.undone:
+        return _todos.where((t) => !t.isDone).toList();
+      case TodoFilter all:
+      default:
+        return List.unmodifiable(_todos);
+    }
+  }
+
+  void setFilter(TodoFilter filter) {
+    _filter = filter;
+    notifyListeners();
+  }
+
+  TodoFilter get filter => _filter;
 
   Future<void> init() async {
     await _loadTodos();

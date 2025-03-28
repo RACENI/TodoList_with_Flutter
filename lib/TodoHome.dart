@@ -14,6 +14,7 @@ class TodoHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TodoProvider>(context); // 상태 접근
+    final todos = context.watch<TodoProvider>().todos;
 
     return Scaffold(
       appBar: AppBar(title: Text('To-Do 앱')),
@@ -23,6 +24,19 @@ class TodoHome extends StatelessWidget {
           key: _formKey,
           child: Column(
             children: [
+              DropdownButton(
+                value: provider.filter,
+                onChanged: (value) {
+                  if(value != null) {
+                    provider.setFilter(value);
+                  }
+                },
+                items: [
+                  DropdownMenuItem(value: TodoFilter.all, child: Text('전체')),
+                  DropdownMenuItem(value: TodoFilter.undone, child: Text('미완료')),
+                  DropdownMenuItem(value: TodoFilter.done, child: Text('완료')),
+                ],
+              ),
               TextFormField(
                 controller: _controller,
                 decoration: InputDecoration(
@@ -52,12 +66,13 @@ class TodoHome extends StatelessWidget {
                 },
                 child: Text('추가'),
               ),
+
               Divider(),
               Expanded(
                 child: ListView.builder(
-                  itemCount: provider.todos.length,
+                  itemCount: todos.length,
                   itemBuilder: (context, index) {
-                    final todo = provider.todos[index];
+                    final todo = todos[index];
                     return ListTile(
                       leading: Checkbox(
                         value: todo.isDone,

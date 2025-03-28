@@ -7,10 +7,15 @@ import 'package:todolist/DetailPage.dart';
 import 'package:todolist/todo_provider.dart';
 import 'package:todolist/TodoHome.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final todoProvider = TodoProvider();
+  await todoProvider.init();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => TodoProvider(),
+    ChangeNotifierProvider.value(
+      value: todoProvider,
       child: const MyApp(),
     )
   );
