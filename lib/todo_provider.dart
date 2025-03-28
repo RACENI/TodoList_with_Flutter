@@ -8,8 +8,36 @@ import 'main.dart';
 
 class TodoProvider extends ChangeNotifier {
   final List<Todo> _todos = [];
+  TodoFilter _filter = TodoFilter.all;
+  String _searchKeyword = '';
 
-  List<Todo> get todos => List.unmodifiable(_todos);
+  void setSearchKeyword(String keyword) {
+    _searchKeyword = keyword.toLowerCase();
+    notifyListeners();
+  }
+
+  List<Todo> get todos {
+    List<Todo> filtered = switch (_filter) {
+      TodoFilter.done => _todos.where((t) => t.isDone).toList(),
+      TodoFilter.undone => _todos.where((t) => !t.isDone).toList(),
+      _ => List.from(_todos),
+    };
+
+    if(_searchKeyword.isNotEmpty) {
+      filtered = filtered.where((t) =>
+        t.title.toLowerCase().contains(_searchKeyword)
+      ).toList();
+    }
+
+    return List.unmodifiable(filtered);
+  }
+
+  void setFilter(TodoFilter filter) {
+    _filter = filter;
+    notifyListeners();
+  }
+
+  TodoFilter get filter => _filter;
 
   Future<void> init() async {
     await _loadTodos();
@@ -17,6 +45,12 @@ class TodoProvider extends ChangeNotifier {
 
   void add(String title) {
     _todos.add(Todo(title: title));
+    _saveTodos();
+    notifyListeners();
+  }
+
+  void addWithDate(String title, [DateTime? dueDate]) {
+    _todos.add(Todo(title: title, dueDate: dueDate));
     _saveTodos();
     notifyListeners();
   }
@@ -63,16 +97,21 @@ enum TodoFilter {all, done, undone}
 class Todo {
   String title;
   bool isDone;
+  DateTime? dueDate;
 
-  Todo({required this.title, this.isDone=false});
+  Todo({required this.title, this.isDone=false, this.dueDate});
 
   Map<String, dynamic> toJson() => {
     'title' : title,
     'isDone' : isDone,
+    'dueDate' : dueDate?.toIso8601String(),
   };
 
   factory Todo.fromJson(Map<String, dynamic> json) => Todo(
     title: json['title'],
     isDone: json['isDone'],
+    dueDate: json['dueDate'] != null
+      ? DateTime.parse(json['dueDate'])
+      : null,
   );
 }
