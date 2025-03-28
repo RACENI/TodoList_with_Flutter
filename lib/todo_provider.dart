@@ -49,6 +49,12 @@ class TodoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addWithDate(String title, [DateTime? dueDate]) {
+    _todos.add(Todo(title: title, dueDate: dueDate));
+    _saveTodos();
+    notifyListeners();
+  }
+
   void toggle(int index) {
     _todos[index].isDone = !_todos[index].isDone;
     _saveTodos();
@@ -91,16 +97,21 @@ enum TodoFilter {all, done, undone}
 class Todo {
   String title;
   bool isDone;
+  DateTime? dueDate;
 
-  Todo({required this.title, this.isDone=false});
+  Todo({required this.title, this.isDone=false, this.dueDate});
 
   Map<String, dynamic> toJson() => {
     'title' : title,
     'isDone' : isDone,
+    'dueDate' : dueDate?.toIso8601String(),
   };
 
   factory Todo.fromJson(Map<String, dynamic> json) => Todo(
     title: json['title'],
     isDone: json['isDone'],
+    dueDate: json['dueDate'] != null
+      ? DateTime.parse(json['dueDate'])
+      : null,
   );
 }

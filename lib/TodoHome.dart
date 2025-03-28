@@ -7,6 +7,7 @@ import 'package:todolist/todo_provider.dart';
 class TodoHome extends StatelessWidget {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  DateTime? _selectedDate;
 
   TodoHome({super.key});
 
@@ -73,17 +74,40 @@ class TodoHome extends StatelessWidget {
                 },
                 onFieldSubmitted: (_) {
                   if (_formKey.currentState!.validate()) {
-                    provider.add(_controller.text);
+                    //provider.add(_controller.text);
+                    provider.addWithDate(_controller.text, _selectedDate);
                     _controller.clear();
+                    _selectedDate = null;
                   }
                 },
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.now().subtract(Duration(days: 365)),
+                    lastDate: DateTime.now().add(Duration(days: 365 * 5)),
+                  );
+
+                  if(pickedDate != null) {
+                    _selectedDate = pickedDate;
+                  }
+                },
+                child: Text(
+                  _selectedDate == null
+                      ? '마감일 선택'
+                      : '마감일: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
+                ),
               ),
               SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    provider.add(_controller.text);
+                    //provider.add(_controller.text);
+                    provider.addWithDate(_controller.text, _selectedDate);
                     _controller.clear();
+                    _selectedDate = null;
                   }
                 },
                 child: Text('추가'),
@@ -107,6 +131,9 @@ class TodoHome extends StatelessWidget {
                           todo.isDone ? TextDecoration.lineThrough : null,
                         ),
                       ),
+                      subtitle: todo.dueDate != null
+                      ? Text('마감일: ${todo.dueDate!.toLocal().toString().split(' ')[0]}')
+                      : null,
                       trailing: IconButton(
                         icon: Icon(Icons.delete),
                         onPressed: () => provider.remove(index),
