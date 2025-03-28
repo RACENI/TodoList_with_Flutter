@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:todolist/DetailPage.dart';
 import 'package:todolist/todo_provider.dart';
 
+import 'Todo.dart';
+
 class TodoHome extends StatelessWidget {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -119,6 +121,7 @@ class TodoHome extends StatelessWidget {
                   itemCount: todos.length,
                   itemBuilder: (context, index) {
                     final todo = todos[index];
+                    final isOverdue = todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now());
                     return ListTile(
                       leading: Checkbox(
                         value: todo.isDone,
@@ -127,8 +130,8 @@ class TodoHome extends StatelessWidget {
                       title: Text(
                         todo.title,
                         style: TextStyle(
-                          decoration:
-                          todo.isDone ? TextDecoration.lineThrough : null,
+                          color: isOverdue ? Colors.red : null,
+                          decoration: todo.isDone ? TextDecoration.lineThrough : null,
                         ),
                       ),
                       subtitle: todo.dueDate != null

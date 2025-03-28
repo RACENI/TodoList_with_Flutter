@@ -2,34 +2,44 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'main.dart';
+import 'Todo.dart';
 
 class TodoProvider extends ChangeNotifier {
-  final List<Todo> _todos = [];
+  final Box<Todo> _box;
   TodoFilter _filter = TodoFilter.all;
+
+//  final List<Todo> _todos = [];
   String _searchKeyword = '';
 
-  void setSearchKeyword(String keyword) {
-    _searchKeyword = keyword.toLowerCase();
-    notifyListeners();
-  }
+  TodoProvider(this._box);
 
   List<Todo> get todos {
-    List<Todo> filtered = switch (_filter) {
-      TodoFilter.done => _todos.where((t) => t.isDone).toList(),
-      TodoFilter.undone => _todos.where((t) => !t.isDone).toList(),
-      _ => List.from(_todos),
+    List<Todo> filtered = switch(_filter) {
+      TodoFilter.done => _box.values.where((t) => t.isDone).toList(),
+      TodoFilter.undone => _box.values.where((t) => !t.isDone).toList(),
+      _ => _box.values.toList(),
     };
-
     if(_searchKeyword.isNotEmpty) {
       filtered = filtered.where((t) =>
         t.title.toLowerCase().contains(_searchKeyword)
       ).toList();
     }
 
-    return List.unmodifiable(filtered);
+    filtered.sort((a,b) {
+      final aDate = a.dueDate ?? DateTime(2100);
+      final bDate = b.dueDate ?? DateTime(2100);
+      return aDate.compareTo(bDate);
+    });
+
+    return filtered;
+  }
+
+  void setSearchKeyword(String keyword) {
+    _searchKeyword = keyword.toLowerCase();
+    notifyListeners();
   }
 
   void setFilter(TodoFilter filter) {
@@ -39,79 +49,37 @@ class TodoProvider extends ChangeNotifier {
 
   TodoFilter get filter => _filter;
 
-  Future<void> init() async {
-    await _loadTodos();
-  }
-
-  void add(String title) {
-    _todos.add(Todo(title: title));
-    _saveTodos();
-    notifyListeners();
-  }
+  // void add(String title) {
+  //   _todos.add(Todo(title: title));
+  //   _saveTodos();
+  //   notifyListeners();
+  // }
 
   void addWithDate(String title, [DateTime? dueDate]) {
-    _todos.add(Todo(title: title, dueDate: dueDate));
-    _saveTodos();
+    final todo = Todo(title: title, dueDate: dueDate);
+    _box.add(todo);
     notifyListeners();
   }
 
   void toggle(int index) {
-    _todos[index].isDone = !_todos[index].isDone;
-    _saveTodos();
-    notifyListeners();
+    final todo = _box.getAt(index);
+    if(todo != null){
+      todo.isDone = !todo.isDone;
+      notifyListeners();
+    }
   }
 
   void remove(int index) {
-    _todos.removeAt(index);
-    _saveTodos();
+    _box.deleteAt(index);
     notifyListeners();
   }
 
   void update(int index, String newTitle) {
-    _todos[index].title = newTitle;
-    _saveTodos();
-    notifyListeners();
-  }
-
-
-  Future<void> _saveTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _todos.map((e) => e.toJson()).toList();
-    prefs.setString('todos', jsonEncode(jsonList));
-  }
-
-  Future<void> _loadTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('todos');
-    if(jsonString != null) {
-      final List decoded = jsonDecode(jsonString);
-      _todos.clear();
-      _todos.addAll(decoded.map((e) => Todo.fromJson(e)));
+    final todo = _box.getAt(index);
+    if (todo != null) {
+      todo.title = newTitle;
+      todo.save();
       notifyListeners();
     }
   }
-}
-
-enum TodoFilter {all, done, undone}
-
-class Todo {
-  String title;
-  bool isDone;
-  DateTime? dueDate;
-
-  Todo({required this.title, this.isDone=false, this.dueDate});
-
-  Map<String, dynamic> toJson() => {
-    'title' : title,
-    'isDone' : isDone,
-    'dueDate' : dueDate?.toIso8601String(),
-  };
-
-  factory Todo.fromJson(Map<String, dynamic> json) => Todo(
-    title: json['title'],
-    isDone: json['isDone'],
-    dueDate: json['dueDate'] != null
-      ? DateTime.parse(json['dueDate'])
-      : null,
-  );
 }
